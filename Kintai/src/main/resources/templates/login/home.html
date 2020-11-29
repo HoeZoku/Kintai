@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<script th:src="@{/webjars/jquery/1.11.1/jquery.min.js}"></script>
+<head>
+<meta charset="UTF-8"></meta>
+</head>
+<body class="text-center">
+	<div th:fragment="home_contents">
+		<div class="page-header">
+			<h3 id="date_home"></h3>
+			<h1 id="time_home"></h1>
+
+			<!--  リアルタイム取得-->
+			<script>
+				function showtime(){
+  					var today = new Date();
+  					$weekday = ['日','月','火','水','木','金','土'];
+  					month = today.getMonth() + 1 ;
+  					$('#date_home').html(month + "月"+ today.getDate() + "日(" + $weekday[today.getDay()] +")");
+  					$('#time_home').html(today.getHours() + ":"+ ('0'+today.getMinutes()).slice(-2) + ":" + ('0' +today.getSeconds()).slice(-2));
+				}setInterval(showtime,1000);
+				</script>
+
+				<!-- 出退勤ボタン -->
+				<form method="post" >
+                <button class="btn btn-primary" type="submit" th:action="@{/logout}">
+                    出勤
+                </button>
+                <button class="btn btn-primary" type="submit" th:action="@{/logout}">
+                    退勤
+                </button>
+            </form>
+		</div>
+	</div>
+</body>
+</html>
+
+
+

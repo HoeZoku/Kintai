@@ -1,0 +1,16 @@
+<!-- 共通エラーページ -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8" />
+    <title>Error</title>
+</head>
+<body>
+    <!-- ポイント：各種エラー内容の表示 -->
+    <H1>エラーが発生しました</H1>
+    <p>ログイン画面に戻ってください</p>
+    <form method="post" th:action="@{/logout}">
+        <button class="btn btn-link" type="submit">ログイン画面に戻る</button>
+    </form>
+</body>
+</html>
