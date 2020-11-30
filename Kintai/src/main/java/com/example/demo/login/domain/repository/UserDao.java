@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.dao.DataAccessException;
 
+import com.example.demo.login.domain.model.DaySheet;
 import com.example.demo.login.domain.model.User;
 
 //多分いらない、直でuserdaojdbcに飛んでいいかも
@@ -28,6 +29,10 @@ public interface UserDao {
 
     // Userテーブルを１件削除.
     public int deleteOne(String userId) throws DataAccessException;
+
+    //勤怠テーブルの情報を取得する
+    public  List<DaySheet> selectManySheet(String userId) throws DataAccessException;
+
 
     //SQL取得結果をサーバーにCSVで保存する
     public void userCsvOut() throws DataAccessException;

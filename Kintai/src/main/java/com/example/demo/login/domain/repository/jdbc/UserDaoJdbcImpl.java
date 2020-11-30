@@ -1,5 +1,7 @@
 package com.example.demo.login.domain.repository.jdbc;
 
+import java.sql.Date;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -10,6 +12,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
+import com.example.demo.login.domain.model.DaySheet;
 import com.example.demo.login.domain.model.User;
 import com.example.demo.login.domain.repository.UserDao;
 
@@ -37,7 +40,7 @@ public class UserDaoJdbcImpl implements UserDao {
     // Userテーブルにデータを1件insert.//////////////////////////////////////////////////////////////////////////////////////////
     @Override
     public int insertOne(User user) throws DataAccessException {
-    
+
     	//暗号化
     	String password = passwordEncoder.encode(user.getPassword());
 
@@ -46,7 +49,7 @@ public class UserDaoJdbcImpl implements UserDao {
                 + " user_name,"
                 + " role)"
                 + " VALUES(?, ?, ?, ?, ?, ?, ?)",
-                user.getUserId(),	
+                user.getUserId(),
                 password,
                 user.getUserName(),
                 user.getRole());
@@ -59,7 +62,7 @@ public class UserDaoJdbcImpl implements UserDao {
     public User selectOne(String userId) throws DataAccessException {
         Map<String, Object> map = jdbc.queryForMap("SELECT * FROM m_user"
                 + " WHERE user_id = ?", userId);
-      
+
         User user = new User();
 
         user.setUserId((String) map.get("user_id")); //ユーザーID
@@ -106,7 +109,7 @@ public class UserDaoJdbcImpl implements UserDao {
                 password,
                 user.getUserName(),
                 user.getUserId());
-        
+
         return rowNumber;
     }
 
@@ -129,4 +132,29 @@ public class UserDaoJdbcImpl implements UserDao {
          //SQL実行＆CSV出力
          jdbc.query(sql, handler);
     }
+
+
+    //勤怠情報全件取得////////////////////////////////////////////////////////////////////////////
+	@Override
+	public List<DaySheet> selectManySheet(String userId) throws DataAccessException {
+		List<Map<String, Object>> getList = jdbc.queryForList("SELECT * FROM work_schedule");
+
+        // 結果返却用の変数
+		List<DaySheet> daysheeList = new ArrayList<>();
+
+        for (Map<String, Object> map : getList) {
+
+        	DaySheet daysheet = new DaySheet();
+
+        	daysheet.setUserId((String) map.get("user_id")); //ユーザーID
+        	daysheet.setWork_date((Date) map.get("work_date")); //日
+        	daysheet.setStart_time((Time) map.get("start_time")); //出勤時間
+        	daysheet.setEnd_time((Time) map.get("end_time")); //退勤時間
+        	daysheet.setNote((String) map.get("note")); //備考
+        	daysheeList.add(daysheet);//これで1行分。あとはforで全件取得
+        }
+
+        return daysheeList ;
+    }
+
 }

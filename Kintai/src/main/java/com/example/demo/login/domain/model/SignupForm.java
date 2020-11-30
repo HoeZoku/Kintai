@@ -8,6 +8,11 @@ import org.hibernate.validator.constraints.Length;
 
 import lombok.Data;
 
+/*
+ * 新規登録画面で入力された内容を格納しておくクラス
+ * //@Dataを付けているのでgetterやsetterは自動生成
+ */
+
 @Data
 public class SignupForm {
 
@@ -16,7 +21,7 @@ public class SignupForm {
     private String userId; // ユーザーID
 
     @NotBlank(message = "{require_check}")
-    @Length(message = "{length_check}")
+    @Length(min=4,max=20,message = "{length_check}")
     @Pattern(regexp = "^[a-zA-Z0-9]+$",message = "{pattern_check}")
     private String password; // パスワード
 

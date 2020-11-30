@@ -13,6 +13,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.login.domain.model.DaySheet;
 import com.example.demo.login.domain.model.User;
 import com.example.demo.login.domain.repository.UserDao;
 
@@ -101,6 +102,15 @@ public class UserService {
             result = true;
         }
         return result;
+    }
+
+    /**
+     * 勤怠テーブル表示用メソッド.//////////////////////////////////////////////////////////////////////////////////////////////////////
+     */
+    public List<DaySheet> selectManySheet(String userId) {
+
+        return dao.selectManySheet(userId);
+
     }
 
     // ユーザー一覧をCSV出力する.///////////////////////////////////////////////////////////////////////////////////////////////

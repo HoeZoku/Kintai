@@ -1,5 +1,5 @@
 
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
        xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity5">
@@ -22,7 +22,7 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">SpringSample</a>
+                <a class="navbar-brand" href="#">勤怠管理Aｐｐ</a>
             </div>
             <form method="post" th:action="@{/logout}">
                 <button class="btn btn-link pull-right navbar-brand" type="submit">
@@ -37,10 +37,10 @@
             <div class="col-sm-2 sidebar">
                 <ul class="nav nav-pills nav-stacked">
                     <li role="presentation">
-                        <a th:href="@{'/userList'}">ユーザ情報</a>
+                        <a th:href="@{'/userList'}">ユーザーリスト</a>
                     </li>
-                    <li role="presentation">
-                        <a th:href="@{'/userList'}">過去勤怠</a>
+                    <li role="presentation" >
+                        <a th:href="@{'/workSheet/' + ${userId}}">勤怠状況</a>
                     </li>
                    <li role="presentation" sec:authorize="hasRole('ADMIN')">
                         <a th:href="@{'/admin'}">アドミン用画面</a>

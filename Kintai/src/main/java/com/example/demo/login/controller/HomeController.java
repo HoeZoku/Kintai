@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import com.example.demo.login.domain.model.DaySheet;
 import com.example.demo.login.domain.model.SignupForm;
 import com.example.demo.login.domain.model.User;
 import com.example.demo.login.domain.service.UserService;
@@ -26,20 +27,18 @@ public class HomeController {
 	@Autowired
 	UserService userService;
 
-
-	//ユーザー一覧画面のGET用メソッド.///////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////GET////////////////////////////////////////////////////////////////
 	@GetMapping("/home")
 	public String getHome(Model model) {
 		model.addAttribute("contents", "login/home::home_contents");
 		return "login/homeLayout";
 	}
 
-
 	/**
-	 * ユーザー一覧画面のGETメソッド用処理.
-	 *Modelから値を取得して表示するためカウント結果と複数検索結果をModelクラスに登録（addAttribute）。/////////////////////////
+	 * ユーザー一覧画面
 	 */
 	@GetMapping("/userList")
+	//Modelから値を取得して表示するためカウント結果と複数検索結果をModelクラスに登録（addAttribute）
 	public String getUserList(Model model) {
 
 		//コンテンツ部分にユーザー一覧を表示するための文字列を登録
@@ -60,16 +59,13 @@ public class HomeController {
 
 
 	/**
-	 * ユーザー詳細画面のGETメソッド用処理//////////////////////////////////////////////////////////////////////////////////////////////
+	 * ユーザー詳細画面
 	 */
 
 	@GetMapping("/userDetail/{id:.+}")
 	public String getUserDetail(@ModelAttribute SignupForm form,
 			Model model,
 			@PathVariable("id") String userId) {
-
-		// ユーザーID確認（デバッグ）
-		System.out.println("userId = " + userId);
 
 		// コンテンツ部分にユーザー詳細を表示するための文字列を登録
 		model.addAttribute("contents", "login/userDetail :: userDetail_contents");
@@ -92,8 +88,37 @@ public class HomeController {
 	}
 
 
+
 	/**
-	 * ユーザー更新用処理.////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	 * 今月の勤怠シート画面（＊＊＊作成中＊＊＊）
+	 * 動的 な URL に 対応 し た メソッド を 作る ため には、@ GetMapping や@ PostMapping の 値 に/{< 変数 名 >} を 付け ます。
+	 * 例えば、 ユーザー ID を 受け取る 場合 は、@ GetMapping(/userDetail/{ id}) と し ます。idがemailの場合は正規表現で{id:.+}
+	 * ＠PathVariableでURLに含まれる情報を変数に渡せる。下記ではURLに含まれるidをString型の変数userIdにぶちこむ
+	 * idは
+	 */
+
+	@GetMapping("/workSheet/{id:.+}")
+	public String getWorkSheet(Model model,@PathVariable("id") String userId) {
+
+		// コンテンツ部分勤怠シートを表示するための文字列を登録
+		model.addAttribute("contents", "login/workSheet :: workSheet_contents");
+
+		// ユーザーIDのチェック
+		if (userId != null && userId.length() > 0) {
+
+			//勤怠テーブルからリスト取得
+			List<DaySheet> daySheetList = userService.selectManySheet(userId);
+
+			//Modelに登録
+			model.addAttribute("daySheetList", daySheetList);
+		}
+			return "login/homeLayout";
+		}
+
+
+////////////////////////////////POST//////////////////////////////////////////////////////////////////////////
+	/**
+	 * ユーザー更新用処理
 	 */
 
 	@PostMapping(value = "/userDetail", params = "update")
@@ -133,7 +158,7 @@ public class HomeController {
 
 
 	/**
-	 * ユーザー削除用処理./////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	 * ユーザー削除用処理
 	 */
 
 	@PostMapping(value = "/userDetail", params = "delete")
@@ -156,7 +181,7 @@ public class HomeController {
 	}
 
 	/**
-	 * ユーザー一覧のCSV出力用処理./////////////////////////////////////////////////////////////////////////////////////
+	 * ユーザー一覧のCSV出力用処理
 	 */
 	@GetMapping("/userList/csv")
 	public ResponseEntity<byte[]> getUserListCsv(Model model) {
@@ -185,7 +210,7 @@ public class HomeController {
 
 
 
-	//ログアウト用メソッド.///////////////////////////////////////////////////////////////////////////////////////////////////////
+	//ログアウト用メソッド.
 	@PostMapping("/logout")
 	public String postLogout() {
 
@@ -194,7 +219,7 @@ public class HomeController {
 	}
 
 	 /**
-     * アドミン権限専用画面のGET用メソッド.////////////////////////////////////////////////////////////////////////////////////////
+     * アドミン権限専用画面のGET用メソッド
      * @param model Modelクラス
      * @return 画面のテンプレート名
      */
