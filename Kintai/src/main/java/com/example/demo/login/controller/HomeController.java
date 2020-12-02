@@ -8,6 +8,8 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,13 +26,37 @@ import com.example.demo.login.domain.service.UserService;
 @Controller
 public class HomeController {
 
+
 	@Autowired
 	UserService userService;
 
 ///////////////////////////////////GET////////////////////////////////////////////////////////////////
+
+	/**
+	 * ログイン後、画面表示前に今月分の勤怠データが作られているかチェック
+	 */
 	@GetMapping("/home")
 	public String getHome(Model model) {
 		model.addAttribute("contents", "login/home::home_contents");
+
+		//ログインしているユーザのID取得(ココじゃなくてもいいような・・・どっかに共通化したい）
+				Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				String userId;
+				if (principal instanceof UserDetails) {
+				  userId = ((UserDetails)principal).getUsername();
+				} else {
+				   userId = principal.toString();
+				}
+				//デバック
+				System.out.println(userId);
+
+				// ユーザーIDのチェック
+				if (userId != null && userId.length() > 0) {
+
+					String result = userService.checkAndMake(userId);
+					//とりあえず結果確認
+					System.out.println(result);
+				}
 		return "login/homeLayout";
 	}
 
@@ -43,6 +69,16 @@ public class HomeController {
 
 		//コンテンツ部分にユーザー一覧を表示するための文字列を登録
 		model.addAttribute("contents", "login/userList :: userList_contents");
+
+		//ログインしているユーザのID取得(ココじゃなくてもいいような・・・どっかに共通化したい）
+				Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				String userId;
+				if (principal instanceof UserDetails) {
+				  userId = ((UserDetails)principal).getUsername();
+				} else {
+				   userId = principal.toString();
+				}
+				System.out.println(userId);
 
 		//ユーザー一覧の生成
 		List<User> userList = userService.selectMany();
@@ -66,7 +102,7 @@ public class HomeController {
 	public String getUserDetail(@ModelAttribute SignupForm form,
 			Model model,
 			@PathVariable("id") String userId) {
-
+		System.out.println(userId);
 		// コンテンツ部分にユーザー詳細を表示するための文字列を登録
 		model.addAttribute("contents", "login/userDetail :: userDetail_contents");
 
@@ -94,14 +130,32 @@ public class HomeController {
 	 * 動的 な URL に 対応 し た メソッド を 作る ため には、@ GetMapping や@ PostMapping の 値 に/{< 変数 名 >} を 付け ます。
 	 * 例えば、 ユーザー ID を 受け取る 場合 は、@ GetMapping(/userDetail/{ id}) と し ます。idがemailの場合は正規表現で{id:.+}
 	 * ＠PathVariableでURLに含まれる情報を変数に渡せる。下記ではURLに含まれるidをString型の変数userIdにぶちこむ
-	 * idは
+	 * ↑
+	 * URLにIDが出るのでよくない？のでSpringSecrityのセッションからログインIDを取得する方法に変更
+	 * Authenticationクラスには認証されたユーザーの情報（ユーザー名や付与されている権限の一覧など）が格納されている。
+	 * 現在のリクエストに紐づく Authentication を取得するには SecurityContextHolder.getContext().getAuthentication() とする。
+	 *SecurityContextHolder.getContext() は、現在のリクエストに紐づく SecurityContext を返している。
+	 *Context.getAuthentication()は認証情報を取得
+	 *Authentication.getPrincipal() で、ログインユーザーの UserDetails を取得←要キャスト？
+	 * まとめ SecuritiContext→認証情報→ユーザー情報で取得してる？よくわｑからん
 	 */
+	@GetMapping("/workSheet")
+	public String getWorkSheet(Model model) {
 
-	@GetMapping("/workSheet/{id:.+}")
-	public String getWorkSheet(Model model,@PathVariable("id") String userId) {
+		//ログインしているユーザのID取得(ココじゃなくてもいいような・・・どっかに共通化したい）
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String userId;
+		if (principal instanceof UserDetails) {
+		  userId = ((UserDetails)principal).getUsername();
+		} else {
+		   userId = principal.toString();
+		}
+		System.out.println(userId);
 
 		// コンテンツ部分勤怠シートを表示するための文字列を登録
 		model.addAttribute("contents", "login/workSheet :: workSheet_contents");
+
+		System.out.println(userId);
 
 		// ユーザーIDのチェック
 		if (userId != null && userId.length() > 0) {
@@ -115,8 +169,14 @@ public class HomeController {
 			return "login/homeLayout";
 		}
 
+		/*
+		 * 出勤ボタン押下
+		 *
+		 *
+		 */
 
-////////////////////////////////POST//////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////POST///////////////////////////////////////////////////
 	/**
 	 * ユーザー更新用処理
 	 */

@@ -30,8 +30,11 @@ public interface UserDao {
     // Userテーブルを１件削除.
     public int deleteOne(String userId) throws DataAccessException;
 
-    //勤怠テーブルの情報を取得する
+    //勤怠テーブルの情報を取得する(テスト用全件）
     public  List<DaySheet> selectManySheet(String userId) throws DataAccessException;
+
+    //今月分の勤怠ひな形があるかチェックしてなければ作成する（とりあえずStringで実行結果返す)
+    public String checkAndMake(String userId) throws DataAccessException;
 
 
     //SQL取得結果をサーバーにCSVで保存する

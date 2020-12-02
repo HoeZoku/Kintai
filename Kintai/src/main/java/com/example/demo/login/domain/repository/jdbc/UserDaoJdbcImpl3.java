@@ -23,13 +23,10 @@ public class UserDaoJdbcImpl3 extends UserDaoJdbcImpl {
     //ユーザー１件取得
     @Override
     public User selectOne(String userId) {
-
         //１件取得用SQL
         String sql = "SELECT * FROM m_user WHERE user_id = ?";
-
         //RowMapperの生成
         RowMapper<User> rowMapper = new BeanPropertyRowMapper<User>(User.class);
-
         //SQL実行
         return jdbc.queryForObject(sql, rowMapper, userId);
     }

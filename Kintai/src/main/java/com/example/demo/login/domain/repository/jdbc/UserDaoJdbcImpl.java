@@ -2,6 +2,8 @@ package com.example.demo.login.domain.repository.jdbc;
 
 import java.sql.Date;
 import java.sql.Time;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -28,7 +30,10 @@ public class UserDaoJdbcImpl implements UserDao {
    @Autowired
     PasswordEncoder passwordEncoder;
 
-    // Userテーブルの件数を取得.///////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+    // Userテーブルの件数を取得./////////////////////////////////////////////////////////////////////////////////////////////////
     @Override
     public int count() throws DataAccessException {
         // 全件取得してカウント
@@ -133,11 +138,62 @@ public class UserDaoJdbcImpl implements UserDao {
          jdbc.query(sql, handler);
     }
 
+   //ログイン時に今月勤怠のひな形がDBにあるかチェックなければ作成する//////////////////////////////////////////////////
 
-    //勤怠情報全件取得////////////////////////////////////////////////////////////////////////////
+    @Override
+	public String checkAndMake(String userId) throws DataAccessException {
+
+    	//自分用メモ
+    	//勤怠テーブルに接続して、引数のユーザIDで月末の行があるか確認。
+    	//ある…＝初日から月末まで行自体はできているはずなので何もしない|ない…初日～月末までの日付とユーザIDが埋まった行を作る
+    	//↑出勤ボタン等で情報をインサートしたり、今月の一覧表示するとき予めにないと作成とか面倒だから？
+    	//確認と作成はメソッド分けるべき？通常はリザルトセット複数いる・・・
+    	//該当のユーザIDかつ今月末のレコード検索
+    	//SELECT * FROM work_schedule WHERE user_id='test@test' AND work_date = LAST_DAY(CURDATE());
+    	//↑でデータ取れるけど空だと何が帰るのかわからないNILL? NULLならレコード作ってそれ以外は何もしないながれにしたい。
+    	//日付の計算や条件まわりはsqlでやるのは難しそうなのでJavaで
+
+    	//NULLの場合の処理
+    	//月末取得
+    	LocalDate now = LocalDate.now();
+    	LocalDate first = now.with(TemporalAdjusters.firstDayOfMonth()); // 月初
+    	LocalDate last = now.with(TemporalAdjusters.lastDayOfMonth()); // 月末
+    	//デバック
+    	System.out.println("月初:"+ first +"  月末:" +last);
+
+    	//対象ユーザの今月初から月末までのレコードをinsertするsql文の作成
+
+    	String sql = "INSERT INTO work_schedule (user_id,work_date,start_time,end_time,note)VALUES";
+    	//月初から月末までループ（月末までカウントしないので+1だけどもっと方法ある・・・)
+    	while (first.isBefore(last.plusDays(1))) {
+    		// ’で囲まないとエラー。直したい・・・
+    	   sql = sql + "("+"'"+userId +"'"+ "," +"'"+ first +"'"+ "," + null + "," + null + "," + null + "),";
+    	   first = first.plusDays(1);
+    	}
+
+    	//今のところsqlは,で終わってるので;に直す（もっとやり方ある?）
+    	StringBuilder sb = new StringBuilder(sql);
+        sb.setLength(sb.length()-1);
+        sb=sb.append(";");
+        sql=sb.toString();
+
+    	//結果をretrnで返したいが結果が何型で帰るかわからない・・・
+
+      //デバック
+    	System.out.println(sql);
+    	//SQL実行
+    	jdbc.update(sql);
+
+		return null;
+	}
+
+
+    //勤怠情報全件取得/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public List<DaySheet> selectManySheet(String userId) throws DataAccessException {
-		List<Map<String, Object>> getList = jdbc.queryForList("SELECT * FROM work_schedule");
+		List<Map<String, Object>> getList = jdbc.queryForList("SELECT * FROM work_schedule WHERE user_id = '" + userId+"'");
+
+		System.out.println(userId);
 
         // 結果返却用の変数
 		List<DaySheet> daysheeList = new ArrayList<>();
@@ -146,7 +202,7 @@ public class UserDaoJdbcImpl implements UserDao {
 
         	DaySheet daysheet = new DaySheet();
 
-        	daysheet.setUserId((String) map.get("user_id")); //ユーザーID
+        	daysheet.setUserId((String) map.get("user_id")); //ユーザーID いらんかも？修正とかでいる？
         	daysheet.setWork_date((Date) map.get("work_date")); //日
         	daysheet.setStart_time((Time) map.get("start_time")); //出勤時間
         	daysheet.setEnd_time((Time) map.get("end_time")); //退勤時間
@@ -156,5 +212,7 @@ public class UserDaoJdbcImpl implements UserDao {
 
         return daysheeList ;
     }
+
+
 
 }

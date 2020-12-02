@@ -10,6 +10,8 @@
         <div class="page-header">
             <h1>勤怠</h1>
         </div>
+        <!--  要ドラッグ機能追加 -->
+
         <table class="table table-bordered table-hover table-striped">
             <tr>
                 <th class="info col-sm-2">日付</th>
@@ -23,8 +25,12 @@
                 <td th:text="${daySheet.start_time}"></td>
                 <td th:text="${daySheet.end_time}"></td>
                 <td th:text="${daySheet.note}"></td>
-
                 <td>
+                    <!-- 編集画面への遷移ボタン（の予定）ヘッダに何渡すか・・・ID＋日付？ -->
+                    <!-- <a class="btn btn-primary" th:href="@{'/userDetail/' + ${user.userId}}"> -->
+                    <a class="btn btn-primary">
+                        修正
+                    </a>
                </td>
             </tr>
         </table>

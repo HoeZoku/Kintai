@@ -23,6 +23,10 @@
         <div class="container-fluid">
             <div class="navbar-header">
                 <a class="navbar-brand" href="#">勤怠管理Aｐｐ</a>
+
+                <!--デバック ID確認-->
+                <a th:inline="text">[[${#httpServletRequest.remoteUser}]]</a>
+
             </div>
             <form method="post" th:action="@{/logout}">
                 <button class="btn btn-link pull-right navbar-brand" type="submit">
@@ -40,7 +44,8 @@
                         <a th:href="@{'/userList'}">ユーザーリスト</a>
                     </li>
                     <li role="presentation" >
-                        <a th:href="@{'/workSheet/' + ${userId}}">勤怠状況</a>
+                    <a th:href="@{workSheet}">勤怠状況</a>
+                        <!-- <a th:href="@{'/workSheet/' + ${userId}}">勤怠状況</a> -->
                     </li>
                    <li role="presentation" sec:authorize="hasRole('ADMIN')">
                         <a th:href="@{'/admin'}">アドミン用画面</a>
