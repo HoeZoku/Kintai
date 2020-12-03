@@ -8,17 +8,16 @@
     <!-- th:fragmentでhomelayoutと紐づけ -->
     <div th:fragment="workSheet_contents">
         <div class="page-header">
-            <h1>勤怠</h1>
+            <h1>1か月勤怠画面</h1>
         </div>
-        <!--  要ドラッグ機能追加 -->
 
         <table class="table table-bordered table-hover table-striped">
             <tr>
                 <th class="info col-sm-2">日付</th>
                 <th class="info col-sm-2">出勤時間</th>
                 <th class="info col-sm-2">退勤時間</th>
-                <th class="info col-sm-2">備考</th>
-                <th class="info col-sm-2"></th>
+                <th class="info col-sm-3">備考</th>
+                <th class="info col-sm-1"></th>
             </tr>
             <tr th:each="daySheet:${daySheetList}">
                 <td th:text="${daySheet.work_date}"></td>
@@ -28,7 +27,7 @@
                 <td>
                     <!-- 編集画面への遷移ボタン（の予定）ヘッダに何渡すか・・・ID＋日付？ -->
                     <!-- <a class="btn btn-primary" th:href="@{'/userDetail/' + ${user.userId}}"> -->
-                    <a class="btn btn-primary">
+                    <a class="btn btn-primary btn-xs" >
                         修正
                     </a>
                </td>

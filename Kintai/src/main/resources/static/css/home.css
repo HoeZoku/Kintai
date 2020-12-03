@@ -1,5 +1,6 @@
 body {
   padding-top: 50px;
+
 }
 
 .sidebar {
@@ -17,8 +18,12 @@ body {
   display: block;
   top: 0px;
   bottom: 0;
+  overflow: scroll;
+
 }
 
 .page-header {
   margin-top: 0px;
 }
+
+

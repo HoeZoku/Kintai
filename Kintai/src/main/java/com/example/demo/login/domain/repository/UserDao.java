@@ -36,6 +36,11 @@ public interface UserDao {
     //今月分の勤怠ひな形があるかチェックしてなければ作成する（とりあえずStringで実行結果返す)
     public String checkAndMake(String userId) throws DataAccessException;
 
+    //勤怠テーブルの本日レコードに出勤時間を記録する
+    public int attendance(String userId) throws DataAccessException;
+
+  //勤怠テーブルの本日レコードに出勤時間を記録する
+    public int leave(String userId) throws DataAccessException;
 
     //SQL取得結果をサーバーにCSVで保存する
     public void userCsvOut() throws DataAccessException;

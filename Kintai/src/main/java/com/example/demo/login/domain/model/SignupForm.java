@@ -10,7 +10,7 @@ import lombok.Data;
 
 /*
  * 新規登録画面で入力された内容を格納しておくクラス
- * //@Dataを付けているのでgetterやsetterは自動生成
+ * @Dataを付けているのでgetterやsetterは自動生成
  */
 
 @Data

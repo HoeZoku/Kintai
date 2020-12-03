@@ -27,7 +27,7 @@ public class UserService {
     @Qualifier("UserDaoJdbcImpl3")
     UserDao dao;
     /**
-     * insert用メソッド.///////////////////////////////////////////////////////////////////////////////////////////////////////////
+     * insert用メソッド.////////////////////////////////////////////////////////////////////
      */
 
     public boolean insert(User user) {
@@ -107,7 +107,8 @@ public class UserService {
     }
 
     /**
-     * ログイン時に当月勤務データのひな形が作成されているか確認するメソッド//////////////////////////////////////////////////////////////////////////////////////////////////////
+     * ログイン時に当月勤務データのひな形が作成されているか確認するメソッド//////////////////////////////////////////////////////////////
+     * 1か月ログインしないと終わる・・・要修正
      */
     public String checkAndMake(String userId) {
 
@@ -116,6 +117,44 @@ public class UserService {
 
         return result;
     }
+
+    /**
+     * 出勤ボタンの処理/////////////////////////////////////////////////////////////////////////////////////////////////////////
+     */
+    public boolean attendance(String userId) {
+
+    	// 判定用変数
+        boolean result = false;
+    	//daoクラス処理呼び出し
+        int rowNumber  = dao.attendance(userId);
+
+        if (rowNumber > 0) {
+            // update成功
+            result = true;
+        }
+        return result;
+
+    }
+
+    /**
+     * 退勤ボタンの処理/////////////////////////////////////////////////////////////////////////////////////////////////////////
+     */
+    public boolean leave(String userId) {
+
+    	// 判定用変数
+        boolean result = false;
+    	//daoクラス処理呼び出し
+        int rowNumber  = dao.leave(userId);
+
+        if (rowNumber > 0) {
+            // update成功
+            result = true;
+        }
+        return result;
+
+    }
+
+
 
 
 

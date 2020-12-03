@@ -30,7 +30,7 @@ public class HomeController {
 	@Autowired
 	UserService userService;
 
-///////////////////////////////////GET////////////////////////////////////////////////////////////////
+	///////////////////////////////////GET////////////////////////////////////////////////////////////////
 
 	/**
 	 * ログイン後、画面表示前に今月分の勤怠データが作られているかチェック
@@ -40,23 +40,23 @@ public class HomeController {
 		model.addAttribute("contents", "login/home::home_contents");
 
 		//ログインしているユーザのID取得(ココじゃなくてもいいような・・・どっかに共通化したい）
-				Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-				String userId;
-				if (principal instanceof UserDetails) {
-				  userId = ((UserDetails)principal).getUsername();
-				} else {
-				   userId = principal.toString();
-				}
-				//デバック
-				System.out.println(userId);
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String userId;
+		if (principal instanceof UserDetails) {
+			userId = ((UserDetails)principal).getUsername();
+		} else {
+			userId = principal.toString();
+		}
+		//デバック
+		System.out.println(userId);
 
-				// ユーザーIDのチェック
-				if (userId != null && userId.length() > 0) {
+		// ユーザーIDのチェック
+		if (userId != null && userId.length() > 0) {
 
-					String result = userService.checkAndMake(userId);
-					//とりあえず結果確認
-					System.out.println(result);
-				}
+			String result = userService.checkAndMake(userId);
+			//とりあえず結果確認
+			System.out.println(result);
+		}
 		return "login/homeLayout";
 	}
 
@@ -71,14 +71,15 @@ public class HomeController {
 		model.addAttribute("contents", "login/userList :: userList_contents");
 
 		//ログインしているユーザのID取得(ココじゃなくてもいいような・・・どっかに共通化したい）
-				Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-				String userId;
-				if (principal instanceof UserDetails) {
-				  userId = ((UserDetails)principal).getUsername();
-				} else {
-				   userId = principal.toString();
-				}
-				System.out.println(userId);
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String userId;
+		if (principal instanceof UserDetails) {
+			userId = ((UserDetails)principal).getUsername();
+		} else {
+			userId = principal.toString();
+		}
+		//デ
+		System.out.println(userId);
 
 		//ユーザー一覧の生成
 		List<User> userList = userService.selectMany();
@@ -137,25 +138,22 @@ public class HomeController {
 	 *SecurityContextHolder.getContext() は、現在のリクエストに紐づく SecurityContext を返している。
 	 *Context.getAuthentication()は認証情報を取得
 	 *Authentication.getPrincipal() で、ログインユーザーの UserDetails を取得←要キャスト？
-	 * まとめ SecuritiContext→認証情報→ユーザー情報で取得してる？よくわｑからん
+	 * まとめ SecuritiContext→認証情報→ユーザー情報で取得してる？よくわからん
 	 */
 	@GetMapping("/workSheet")
 	public String getWorkSheet(Model model) {
 
-		//ログインしているユーザのID取得(ココじゃなくてもいいような・・・どっかに共通化したい）
+		//ログインしているユーザのID取得(どっかで共通化すべき？）
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		String userId;
 		if (principal instanceof UserDetails) {
-		  userId = ((UserDetails)principal).getUsername();
+			userId = ((UserDetails)principal).getUsername();
 		} else {
-		   userId = principal.toString();
+			userId = principal.toString();
 		}
-		System.out.println(userId);
 
-		// コンテンツ部分勤怠シートを表示するための文字列を登録
+		//htmlコンテンツ部分に表示するための文字列を登録
 		model.addAttribute("contents", "login/workSheet :: workSheet_contents");
-
-		System.out.println(userId);
 
 		// ユーザーIDのチェック
 		if (userId != null && userId.length() > 0) {
@@ -166,132 +164,205 @@ public class HomeController {
 			//Modelに登録
 			model.addAttribute("daySheetList", daySheetList);
 		}
+		return "login/homeLayout";
+	}
+
+	/*
+	 * 出勤ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	 *
+	 */
+	@PostMapping(value = "/home", params = "attendance")
+	public String postAttendance(Model model) {
+
+		model.addAttribute("contents", "login/home::home_contents");
+
+		//デ
+		System.out.println("出勤ボタンの処理");
+
+		//ログインしているユーザのID取得(どっかで共通化すべき？）
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String userId;
+		if (principal instanceof UserDetails) {
+			userId = ((UserDetails)principal).getUsername();
+		} else {
+			userId = principal.toString();
+		}
+
+		// ユーザーIDのチェック
+		if (userId != null && userId.length() > 0) {
+
+
+				//更新実行
+				boolean result = userService.attendance(userId);
+				//デ
+				System.out.println(result);
+
+				if (result == true) {
+					model.addAttribute("result", "更新成功");
+				} else {
+					model.addAttribute("result", "更新失敗");
+				}
+
+		}
+		return "login/homeLayout";
+	}
+
+	/*
+	 * 退勤ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	 *
+	 */
+	@PostMapping(value = "/home", params = "leave")
+	public String postLeave(Model model) {
+
+		model.addAttribute("contents", "login/home::home_contents");
+
+		//デ
+		System.out.println("退勤ボタンの処理");
+
+		//ログインしているユーザのID取得(どっかで共通化すべき？）
+		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		String userId;
+		if (principal instanceof UserDetails) {
+			userId = ((UserDetails)principal).getUsername();
+		} else {
+			userId = principal.toString();
+		}
+
+		// ユーザーIDのチェック
+		if (userId != null && userId.length() > 0) {
+
+
+				//更新実行
+				boolean result = userService.leave(userId);
+				//デ
+				System.out.println(result);
+
+				if (result == true) {
+					model.addAttribute("result", "更新成功");
+				} else {
+					model.addAttribute("result", "更新失敗");
+				}
+
+		}
+		return "login/homeLayout";
+	}
+
+
+		/**
+		 * ユーザー更新用処理////////////////////////////////////////////////////////////
+		 */
+
+		@PostMapping(value = "/userDetail", params = "update")
+		public String postUserDetailUpdate(@ModelAttribute SignupForm form,
+				Model model) {
+
+			System.out.println("更新ボタンの処理");
+
+			//Userインスタンスの生成
+			User user = new User();
+
+			//フォームクラスをUserクラスに変換
+			user.setUserId(form.getUserId());
+			user.setPassword(form.getPassword());
+			user.setUserName(form.getUserName());
+			//更新実行
+			try {
+
+				//更新実行
+				boolean result = userService.updateOne(user);
+
+				if (result == true) {
+					model.addAttribute("result", "更新成功");
+				} else {
+					model.addAttribute("result", "更新失敗");
+				}
+
+			} catch (DataAccessException e) {
+
+				model.addAttribute("result", "更新失敗(トランザクションテスト)");
+
+			}
+
+			//ユーザー一覧画面を表示
+			return getUserList(model);
+		}
+
+
+		/**
+		 * ユーザー削除用処理
+		 */
+
+		@PostMapping(value = "/userDetail", params = "delete")
+		public String postUserDetailDelete(@ModelAttribute SignupForm form,
+				Model model) {
+
+			System.out.println("削除ボタンの処理");
+
+			//削除実行
+			boolean result = userService.deleteOne(form.getUserId());
+
+			if (result == true) {
+				model.addAttribute("result", "削除成功");
+			} else {
+				model.addAttribute("result", "削除失敗");
+			}
+
+			//ユーザー一覧画面を表示
+			return getUserList(model);
+		}
+
+		/**
+		 * ユーザー一覧のCSV出力用処理
+		 */
+		@GetMapping("/userList/csv")
+		public ResponseEntity<byte[]> getUserListCsv(Model model) {
+
+			//ユーザーを全件取得して、CSVをサーバーに保存する
+			userService.userCsvOut();
+
+			byte[] bytes = null;
+
+			try {
+
+				//サーバーに保存されているsample.csvファイルをbyteで取得する
+				bytes = userService.getFile("sample.csv");
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			HttpHeaders header = new HttpHeaders();
+			header.add("Content-Type", "text/csv; charset=UTF-8");
+			header.setContentDispositionFormData("filename", "sample.csv");
+
+			//sample.csvを戻すをResponseEntity型にするとタイムリーフのテンプレート(html)ではなく、ファイル（byte型の配列）を返却できる
+			return new ResponseEntity<>(bytes, header, HttpStatus.OK);
+		}
+
+
+
+		//ログアウト用メソッド.
+		@PostMapping("/logout")
+		public String postLogout() {
+
+			//ログイン画面にリダイレクト
+			return "redirect:/login";
+		}
+
+		/**
+		 * アドミン権限専用画面のGET用メソッド
+		 * @param model Modelクラス
+		 * @return 画面のテンプレート名
+		 */
+		@GetMapping("/admin")
+		public String getAdmin(Model model) {
+
+			//コンテンツ部分にユーザー詳細を表示するための文字列を登録
+			model.addAttribute("contents", "login/admin :: admin_contents");
+
+			//レイアウト用テンプレート
 			return "login/homeLayout";
 		}
 
-		/*
-		 * 出勤ボタン押下
-		 *
-		 *
-		 */
 
-
-////////////////////////////////POST///////////////////////////////////////////////////
-	/**
-	 * ユーザー更新用処理
-	 */
-
-	@PostMapping(value = "/userDetail", params = "update")
-	public String postUserDetailUpdate(@ModelAttribute SignupForm form,
-			Model model) {
-
-		System.out.println("更新ボタンの処理");
-
-		//Userインスタンスの生成
-		User user = new User();
-
-		//フォームクラスをUserクラスに変換
-		user.setUserId(form.getUserId());
-		user.setPassword(form.getPassword());
-		user.setUserName(form.getUserName());
-		//更新実行
-		try {
-
-            //更新実行
-            boolean result = userService.updateOne(user);
-
-            if (result == true) {
-                model.addAttribute("result", "更新成功");
-            } else {
-                model.addAttribute("result", "更新失敗");
-            }
-
-        } catch (DataAccessException e) {
-
-            model.addAttribute("result", "更新失敗(トランザクションテスト)");
-
-        }
-
-		//ユーザー一覧画面を表示
-		return getUserList(model);
 	}
-
-
-	/**
-	 * ユーザー削除用処理
-	 */
-
-	@PostMapping(value = "/userDetail", params = "delete")
-	public String postUserDetailDelete(@ModelAttribute SignupForm form,
-			Model model) {
-
-		System.out.println("削除ボタンの処理");
-
-		//削除実行
-		boolean result = userService.deleteOne(form.getUserId());
-
-		if (result == true) {
-			model.addAttribute("result", "削除成功");
-		} else {
-			model.addAttribute("result", "削除失敗");
-		}
-
-		//ユーザー一覧画面を表示
-		return getUserList(model);
-	}
-
-	/**
-	 * ユーザー一覧のCSV出力用処理
-	 */
-	@GetMapping("/userList/csv")
-	public ResponseEntity<byte[]> getUserListCsv(Model model) {
-
-		//ユーザーを全件取得して、CSVをサーバーに保存する
-		userService.userCsvOut();
-
-		byte[] bytes = null;
-
-		try {
-
-			//サーバーに保存されているsample.csvファイルをbyteで取得する
-			bytes = userService.getFile("sample.csv");
-
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-
-		HttpHeaders header = new HttpHeaders();
-		header.add("Content-Type", "text/csv; charset=UTF-8");
-		header.setContentDispositionFormData("filename", "sample.csv");
-
-		//sample.csvを戻すをResponseEntity型にするとタイムリーフのテンプレート(html)ではなく、ファイル（byte型の配列）を返却できる
-		return new ResponseEntity<>(bytes, header, HttpStatus.OK);
-	}
-
-
-
-	//ログアウト用メソッド.
-	@PostMapping("/logout")
-	public String postLogout() {
-
-		//ログイン画面にリダイレクト
-		return "redirect:/login";
-	}
-
-	 /**
-     * アドミン権限専用画面のGET用メソッド
-     * @param model Modelクラス
-     * @return 画面のテンプレート名
-     */
-    @GetMapping("/admin")
-    public String getAdmin(Model model) {
-
-        //コンテンツ部分にユーザー詳細を表示するための文字列を登録
-        model.addAttribute("contents", "login/admin :: admin_contents");
-
-        //レイアウト用テンプレート
-        return "login/homeLayout";
-    }
-
-
-}

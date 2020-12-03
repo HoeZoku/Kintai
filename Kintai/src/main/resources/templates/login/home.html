@@ -23,11 +23,11 @@
 				</script>
 
 				<!-- 出退勤ボタン -->
-				<form method="post" >
-                <button class="btn btn-primary" type="submit" th:action="@{/logout}">
+				<form method="post" th:action="@{/home}">
+                <button class="btn btn-primary" type="submit"name="attendance">
                     出勤
                 </button>
-                <button class="btn btn-primary" type="submit" th:action="@{/logout}">
+                <button class="btn btn-primary" type="submit" name="leave">
                     退勤
                 </button>
             </form>
