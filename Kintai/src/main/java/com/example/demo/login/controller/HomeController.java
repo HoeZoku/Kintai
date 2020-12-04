@@ -1,6 +1,7 @@
 package com.example.demo.login.controller;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import com.example.demo.login.domain.model.DaySheet;
+import com.example.demo.login.domain.model.DayRecode;
 import com.example.demo.login.domain.model.SignupForm;
 import com.example.demo.login.domain.model.User;
 import com.example.demo.login.domain.service.UserService;
@@ -25,7 +26,6 @@ import com.example.demo.login.domain.service.UserService;
 //ホーム画面用コントローラークラス
 @Controller
 public class HomeController {
-
 
 	@Autowired
 	UserService userService;
@@ -39,7 +39,7 @@ public class HomeController {
 	public String getHome(Model model) {
 		model.addAttribute("contents", "login/home::home_contents");
 
-		//ログインしているユーザのID取得(ココじゃなくてもいいような・・・どっかに共通化したい）
+		//ログインしているユーザのID取得(どっかで共通化したい）
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		String userId;
 		if (principal instanceof UserDetails) {
@@ -47,14 +47,13 @@ public class HomeController {
 		} else {
 			userId = principal.toString();
 		}
-		//デバック
+		//デ
 		System.out.println(userId);
 
 		// ユーザーIDのチェック
 		if (userId != null && userId.length() > 0) {
-
 			String result = userService.checkAndMake(userId);
-			//とりあえず結果確認
+			//デ
 			System.out.println(result);
 		}
 		return "login/homeLayout";
@@ -68,7 +67,7 @@ public class HomeController {
 	public String getUserList(Model model) {
 
 		//コンテンツ部分にユーザー一覧を表示するための文字列を登録
-		model.addAttribute("contents", "login/userList :: userList_contents");
+		model.addAttribute("contents", "login/userList::userList_contents");
 
 		//ログインしているユーザのID取得(ココじゃなくてもいいような・・・どっかに共通化したい）
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -93,7 +92,6 @@ public class HomeController {
 
 		return "login/homeLayout";
 	}
-
 
 	/**
 	 * ユーザー詳細画面
@@ -128,6 +126,7 @@ public class HomeController {
 
 	/**
 	 * 今月の勤怠シート画面（＊＊＊作成中＊＊＊）
+	 * 今はとりあえず全件取得
 	 * 動的 な URL に 対応 し た メソッド を 作る ため には、@ GetMapping や@ PostMapping の 値 に/{< 変数 名 >} を 付け ます。
 	 * 例えば、 ユーザー ID を 受け取る 場合 は、@ GetMapping(/userDetail/{ id}) と し ます。idがemailの場合は正規表現で{id:.+}
 	 * ＠PathVariableでURLに含まれる情報を変数に渡せる。下記ではURLに含まれるidをString型の変数userIdにぶちこむ
@@ -140,7 +139,7 @@ public class HomeController {
 	 *Authentication.getPrincipal() で、ログインユーザーの UserDetails を取得←要キャスト？
 	 * まとめ SecuritiContext→認証情報→ユーザー情報で取得してる？よくわからん
 	 */
-	@GetMapping("/workSheet")
+	@GetMapping("/attendanceRecord")
 	public String getWorkSheet(Model model) {
 
 		//ログインしているユーザのID取得(どっかで共通化すべき？）
@@ -153,16 +152,16 @@ public class HomeController {
 		}
 
 		//htmlコンテンツ部分に表示するための文字列を登録
-		model.addAttribute("contents", "login/workSheet :: workSheet_contents");
+		model.addAttribute("contents", "login/attendanceRecord :: attendanceRecord_contents");
 
 		// ユーザーIDのチェック
 		if (userId != null && userId.length() > 0) {
 
 			//勤怠テーブルからリスト取得
-			List<DaySheet> daySheetList = userService.selectManySheet(userId);
+			List<DayRecode> dayRecodeList = userService.selectManySheet(userId);
 
 			//Modelに登録
-			model.addAttribute("daySheetList", daySheetList);
+			model.addAttribute("dayRecodeList", dayRecodeList);
 		}
 		return "login/homeLayout";
 	}
@@ -176,9 +175,6 @@ public class HomeController {
 
 		model.addAttribute("contents", "login/home::home_contents");
 
-		//デ
-		System.out.println("出勤ボタンの処理");
-
 		//ログインしているユーザのID取得(どっかで共通化すべき？）
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		String userId;
@@ -191,34 +187,36 @@ public class HomeController {
 		// ユーザーIDのチェック
 		if (userId != null && userId.length() > 0) {
 
+			//今日分レコード取得
+			Date now = new Date(System.currentTimeMillis());
+			DayRecode dayRecode =userService.selectDay(userId,now);
 
+			if(dayRecode.getStartTime()==null) {
 				//更新実行
 				boolean result = userService.attendance(userId);
-				//デ
-				System.out.println(result);
-
+				//使ってない？
 				if (result == true) {
 					model.addAttribute("result", "更新成功");
 				} else {
 					model.addAttribute("result", "更新失敗");
 				}
-
+			}else {
+				//デ
+				System.out.println("出勤済み");
+			}
 		}
+
 		return "login/homeLayout";
 	}
 
-	/*
-	 * 退勤ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	 *
-	 */
+
+	  //退勤ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	@PostMapping(value = "/home", params = "leave")
 	public String postLeave(Model model) {
 
 		model.addAttribute("contents", "login/home::home_contents");
 
-		//デ
-		System.out.println("退勤ボタンの処理");
-
 		//ログインしているユーザのID取得(どっかで共通化すべき？）
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		String userId;
@@ -231,18 +229,22 @@ public class HomeController {
 		// ユーザーIDのチェック
 		if (userId != null && userId.length() > 0) {
 
+			//今日分レコード取得
+			Date now = new Date(System.currentTimeMillis());
+			DayRecode dayRecode =userService.selectDay(userId,now);
 
+			if(dayRecode.getEndTime()==null) {
 				//更新実行
 				boolean result = userService.leave(userId);
-				//デ
-				System.out.println(result);
-
 				if (result == true) {
 					model.addAttribute("result", "更新成功");
 				} else {
 					model.addAttribute("result", "更新失敗");
 				}
-
+			}else {
+			//デ
+			System.out.println("退勤済み");
+			}
 		}
 		return "login/homeLayout";
 	}
@@ -338,8 +340,6 @@ public class HomeController {
 			//sample.csvを戻すをResponseEntity型にするとタイムリーフのテンプレート(html)ではなく、ファイル（byte型の配列）を返却できる
 			return new ResponseEntity<>(bytes, header, HttpStatus.OK);
 		}
-
-
 
 		//ログアウト用メソッド.
 		@PostMapping("/logout")

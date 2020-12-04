@@ -6,7 +6,7 @@
 </head>
 <body>
     <!-- th:fragmentでhomelayoutと紐づけ -->
-    <div th:fragment="workSheet_contents">
+    <div th:fragment="attendanceRecord_contents">
         <div class="page-header">
             <h1>1か月勤怠画面</h1>
         </div>
@@ -19,11 +19,11 @@
                 <th class="info col-sm-3">備考</th>
                 <th class="info col-sm-1"></th>
             </tr>
-            <tr th:each="daySheet:${daySheetList}">
-                <td th:text="${daySheet.work_date}"></td>
-                <td th:text="${daySheet.start_time}"></td>
-                <td th:text="${daySheet.end_time}"></td>
-                <td th:text="${daySheet.note}"></td>
+            <tr th:each="recode:${dayRecodeList}">
+                <td th:text="${recode.workDate}"></td>
+                <td th:text="${recode.startTime}"></td>
+                <td th:text="${recode.endTime}"></td>
+                <td th:text="${recode.note}"></td>
                 <td>
                     <!-- 編集画面への遷移ボタン（の予定）ヘッダに何渡すか・・・ID＋日付？ -->
                     <!-- <a class="btn btn-primary" th:href="@{'/userDetail/' + ${user.userId}}"> -->

@@ -7,13 +7,13 @@ import lombok.Data;
 
 //gettersetter自動生成
 @Data
-public class DaySheet {
+public class DayRecode {
 //データベースから取得 した値 を、コントローラークラスやサービスクラスなどの間でやり取りするためのクラス
 
     private String userId; //ユーザーID
-    private Date work_date; //日 java.sql.DateがmysqlのDateに対応しているらしい？
-    private Time start_time; //出勤時間 java.sql.timeがmysqlのDateに対応しているらしい？
-    private Time end_time;//退勤時間
+    private Date workDate; //日 java.sql.DateがmysqlのDateに対応しているらしい？
+    private Time startTime; //出勤時間 java.sql.timeがmysqlのDateに対応しているらしい？
+    private Time endTime;//退勤時間
     private String note;//備考
 
 }

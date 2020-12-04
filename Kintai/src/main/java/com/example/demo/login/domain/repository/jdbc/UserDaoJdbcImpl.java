@@ -14,14 +14,16 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
-import com.example.demo.login.domain.model.DaySheet;
+import com.example.demo.login.domain.model.DayRecode;
 import com.example.demo.login.domain.model.User;
 import com.example.demo.login.domain.repository.UserDao;
 
+//近いうちにBeanPropertyRowMapper使ってスマートにしたい
 
 //Bean名をセットすることで@Autowiredする際にどのクラスを使用するか指定できる
 @Repository("UserDaoJdbcImpl")
 public class UserDaoJdbcImpl implements UserDao {
+
 	/*
 	 * UserDaoインターフェイスを実装するクラス
 	 */
@@ -31,9 +33,7 @@ public class UserDaoJdbcImpl implements UserDao {
 	PasswordEncoder passwordEncoder;
 
 
-
-
-	// Userテーブルの件数を取得./////////////////////////////////////////////////////////////////////////////////////////////////
+	// Userテーブルの件数を取得.//////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public int count() throws DataAccessException {
 		// 全件取得してカウント
@@ -42,7 +42,7 @@ public class UserDaoJdbcImpl implements UserDao {
 		return count;
 	}
 
-	// Userテーブルにデータを1件insert.//////////////////////////////////////////////////////////////////////////////////////////
+	// Userテーブルにデータを1件insert.///////////////////////////////////////////////////////////////////////////////////////
 	@Override
 	public int insertOne(User user) throws DataAccessException {
 
@@ -62,7 +62,8 @@ public class UserDaoJdbcImpl implements UserDao {
 		return rowNumber;
 	}
 
-	// Userテーブルのデータを１件取得////////////////////////////////////////////////////////////////////////////////////////////////
+	// Userテーブルのデータを１件取得////////////////////////////////////////////////////////////////////////////////////////
+	//ここは継承先のBeanPropertyRowMapperで処理される
 	@Override
 	public User selectOne(String userId) throws DataAccessException {
 		Map<String, Object> map = jdbc.queryForMap("SELECT * FROM m_user"
@@ -78,6 +79,7 @@ public class UserDaoJdbcImpl implements UserDao {
 	}
 
 	// Userテーブルの全データを取得.///////////////////////////////////////////////////////////////////////////////////////////////////
+	//ここは継承先のBeanPropertyRowMapperで処理される
 	@Override
 	public List<User> selectMany() throws DataAccessException {
 		List<Map<String, Object>> getList = jdbc.queryForList("SELECT * FROM m_user");
@@ -152,18 +154,20 @@ public class UserDaoJdbcImpl implements UserDao {
 	//日付の計算や条件まわりはsqlでやるのは難しそうなのでJavaで
 	//（isBeforeだと月末までカウントしないので+1だけどもっと方法ある・・・)
 	// sql中’で囲まないとエラー。直したい・・・
+	//BeanPropertyRowMapperを使えばもっとスマート？null入れる場合どうなるのかはわからない・・・
 
 	@Override
 	public String checkAndMake(String userId) throws DataAccessException {
 
-
 		//結果格納用
 		String result;
 
-		//今月分レコードチェック(月末レコードの有無を基準)
-		String sql ="SELECT EXISTS"+
-				"(SELECT * FROM work_schedule " +
-				"WHERE user_id=" + "'"+userId+"'"+ " AND work_date = LAST_DAY(CURDATE()))";
+		//今月分レコードチェック(月末レコードの有無を基準)  ?使った書き方にかえる
+		String sql ="SELECT EXISTS"
+				+ "(SELECT * FROM work_schedule "
+				+ " WHERE user_id=" + "'"+userId+"'"
+				+ " AND work_date = LAST_DAY(CURDATE()))";
+
 		Map<String, Object> recordResult = ( jdbc.queryForMap(sql));
 
 		if(recordResult.values().toString().equals("[0]")) {
@@ -175,7 +179,7 @@ public class UserDaoJdbcImpl implements UserDao {
 			LocalDate first = now.with(TemporalAdjusters.firstDayOfMonth());
 			LocalDate last = now.with(TemporalAdjusters.lastDayOfMonth());
 
-			//クエリ作成
+			//クエリ作成 ?つかった方がすまーと？
 			sql = "INSERT INTO work_schedule (user_id,work_date,start_time,end_time,note)VALUES";
 			while (first.isBefore(last.plusDays(1))) {
 				sql = sql + "("+"'"+userId +"'"+ "," +"'"+ first +"'"+ "," + null + "," + null + "," + null + "),";
@@ -198,8 +202,7 @@ public class UserDaoJdbcImpl implements UserDao {
 	}
 
 	//出勤ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	//問答無用で更新するので、ある程度機能が揃ったらNULLだったらとか条件必須（ここ以前に判断してもいい
+	//打刻時間と打刻日付はそのうち引数でもらうようにしないと今のは厳密ではない
 
 	@Override
 	public int attendance(String userId) throws DataAccessException {
@@ -210,47 +213,66 @@ public class UserDaoJdbcImpl implements UserDao {
 				+ " AND work_date = CURDATE();");
 
 		return rowNumber;
+	}
+
+	//退勤ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//打刻時間と打刻日付はそのうち引数でもらうようにしないと今のは厳密ではない
+	@Override
+	public int leave(String userId) throws DataAccessException {
+
+		int rowNumber = jdbc.update("UPDATE work_schedule"
+				+ " SET end_time= NOW() "
+				+ " WHERE user_id =" + "'" + userId + "'"
+				+ " AND work_date = CURDATE();");
+
+		return rowNumber;
 
 	}
 
-	//出勤ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//勤怠テーブル一件(1日分)取得/////////////////////////////////////////////////////////////////////////////////////
 
-	//問答無用で更新するので、ある程度機能が揃ったらNULLだったらとか条件必須（ここ以前に判断してもいい
+	@Override
+	public DayRecode selectDay(String userId,Date date) throws DataAccessException {
+		Map<String, Object> map = jdbc.queryForMap("SELECT * FROM work_schedule"
+				+ " WHERE user_id = ?"
+				+ " AND work_date = ?",
+				userId,
+				date);
 
-		@Override
-		public int leave(String userId) throws DataAccessException {
+		//結果格納用
+		DayRecode deyRecode = new DayRecode();
 
-			int rowNumber = jdbc.update("UPDATE work_schedule"
-					+ " SET end_time= NOW() "
-					+ " WHERE user_id =" + "'" + userId + "'"
-					+ " AND work_date = CURDATE();");
+		deyRecode.setUserId((String) map.get("user_id")); //ユーザーID
+		deyRecode.setWorkDate((Date) map.get("work_date")); //年月日
+		deyRecode.setStartTime((Time) map.get("start_time")); //出勤時間
+		deyRecode.setEndTime((Time) map.get("end_time")); //退勤時間
+		deyRecode.setNote((String) map.get("note"));
 
-			return rowNumber;
-
-		}
-
+		return deyRecode;
+	}
 
 	//勤怠情報全件取得/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//試しに作った。使ってない
 	@Override
-	public List<DaySheet> selectManySheet(String userId) throws DataAccessException {
+	public List<DayRecode> selectManySheet(String userId) throws DataAccessException {
 		List<Map<String, Object>> getList = jdbc.queryForList("SELECT * FROM work_schedule WHERE user_id = '" + userId+"'");
 
+		//デ
 		System.out.println(userId);
 
 		// 結果返却用の変数
-		List<DaySheet> daysheeList = new ArrayList<>();
+		List<DayRecode> daysheeList = new ArrayList<>();
 
 		for (Map<String, Object> map : getList) {
 
-			DaySheet daysheet = new DaySheet();
+			DayRecode dayRecode = new DayRecode();
 
-			daysheet.setUserId((String) map.get("user_id")); //ユーザーID いらんかも？修正とかでいる？
-			daysheet.setWork_date((Date) map.get("work_date")); //日
-			daysheet.setStart_time((Time) map.get("start_time")); //出勤時間
-			daysheet.setEnd_time((Time) map.get("end_time")); //退勤時間
-			daysheet.setNote((String) map.get("note")); //備考
-			daysheeList.add(daysheet);//これで1行分。あとはforで全件取得
+			dayRecode.setUserId((String) map.get("user_id")); //ユーザーID いらんかも？修正とかでいる？
+			dayRecode.setWorkDate((Date) map.get("work_date")); //日
+			dayRecode.setStartTime((Time) map.get("start_time")); //出勤時間
+			dayRecode.setEndTime((Time) map.get("end_time")); //退勤時間
+			dayRecode.setNote((String) map.get("note")); //備考
+			daysheeList.add(dayRecode);//これで1行分。あとはforで全件取得
 		}
 
 		return daysheeList ;

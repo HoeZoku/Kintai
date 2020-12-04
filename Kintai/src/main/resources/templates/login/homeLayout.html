@@ -44,7 +44,7 @@
                         <a th:href="@{'/userList'}">ユーザーリスト</a>
                     </li>
                     <li role="presentation" >
-                    <a th:href="@{workSheet}">勤怠状況</a>
+                    <a th:href="@{attendanceRecord}">勤怠状況</a>
                         <!-- <a th:href="@{'/workSheet/' + ${userId}}">勤怠状況</a> -->
                     </li>
                    <li role="presentation" sec:authorize="hasRole('ADMIN')">

@@ -11,8 +11,10 @@ import org.springframework.stereotype.Repository;
 import com.example.demo.login.domain.model.User;
 
 //BeanPropertyRowMapperではデータベースから取得してきたカラム名と同一のフィールド名がクラスにあれば自動でマッピングをしてくれます。
+//sqlの？に
+
 //RowMapperのようにどのカラムとどのフィールドを一致させるか、いちいち用意する必要がありません。
-//ただし、自動でマッピングするためには■カラム名は単語をスネーク(user_id)■フィールド名はキャメル(String userId;)
+//ただし、自動でマッピングするためには■カラム名は単語をスネーク(user_id)■フィールド名はキャメル(userId;)
 
 @Repository("UserDaoJdbcImpl3")
 public class UserDaoJdbcImpl3 extends UserDaoJdbcImpl {
