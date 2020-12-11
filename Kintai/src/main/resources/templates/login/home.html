@@ -13,34 +13,41 @@
 
 			<!--  リアルタイム表示-->
 			<script>
-				function showtime(){
-  					var today = new Date();
-  					$weekday = ['日','月','火','水','木','金','土'];
-  					month = today.getMonth() + 1 ;
-  					$('#date_home').html(month + "月"+ today.getDate() + "日(" + $weekday[today.getDay()] +")");
-  					$('#time_home').html(today.getHours() + ":"+ ('0'+today.getMinutes()).slice(-2) + ":" + ('0' +today.getSeconds()).slice(-2));
-				}setInterval(showtime,1000);
-				</script>
+			function showtime(){
+  				var today = new Date();
+  				$weekday = ['日','月','火','水','木','金','土'];
+  				month = today.getMonth() + 1 ;
+  				$('#date_home').html(month + "月"+ today.getDate() + "日(" + $weekday[today.getDay()] +")");
+  				$('#time_home').html(today.getHours() + ":"+ ('0'+today.getMinutes()).slice(-2) + ":" + ('0' +today.getSeconds()).slice(-2));
+			}setInterval(showtime,1000);
+			</script>
 
-				<!-- 出退勤ボタン -->
-				<form method="post" th:action="@{/home}">
-                <button class="btn btn-primary" type="submit"name="attendance">
-                    出勤
-                </button>
-                <button class="btn btn-primary" type="submit" name="leave">
-                    退勤
-                </button>
-            </form>
+			<!-- 打刻・修正ボタン -->
+			<form method="post" th:action="@{/home}">
+				<br>
+				<button class="btn btn-primary" type="submit" name="stamping">
+					打刻</button>
+				<!-- <button class="btn btn-primary" type="submit" name="todayCorrect">
+					修正</button> -->
+			</form>
+			<br>
 
-            <!-- エラー表示 -->
-           <!-- <span class="text-danger" th:if="${}">
-                                userName error
-          </span>
- -->
+
+			<!-- 8秒ぐらいで打刻した際のメッセージ消す（スローになってない気が・・・jqueryのバージョンが古いからかも） -->
+			<script>
+			$(function(){
+  				$(".text-danger:not(:animated)").fadeIn("slow",function(){
+    				$(this).delay(8000).fadeOut("slow");
+  				});
+			});
+		</script>
+
+			<!-- 打刻した際のメッセージ -->
+			<span class="text-danger" th:if="${str != null}">
+				<p th:text="${str}">
+			</span>
+
 		</div>
 	</div>
 </body>
 </html>
-
-
-

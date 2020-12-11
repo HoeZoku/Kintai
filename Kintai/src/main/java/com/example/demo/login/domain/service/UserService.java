@@ -91,6 +91,25 @@ public class UserService {
 	}
 
 	/**
+	 * １件更新用メソッド.//////////////////////////////////////////////////
+	 */
+	public boolean updateStamping(DayRecode dayRecode) {
+
+		// 判定用変数
+		boolean result = false;
+
+		// １件更新
+		int rowNumber = dao.updateStamping(dayRecode);
+
+		if (rowNumber > 0) {
+			// update成功
+			result = true;
+		}
+
+		return result;
+	}
+
+	/**
 	 * １件削除用メソッド./////////////////////////////////////////////////////
 	 */
 	public boolean deleteOne(String userId) {
@@ -169,7 +188,7 @@ public class UserService {
 	 */
 	public DayRecode selectDay(String userId,Date date) {
 
-		System.out.println(userId+date);
+		System.out.println(userId+":"+date);
 
 		// 一日分取得実行
 		return dao.selectDay(userId,date);

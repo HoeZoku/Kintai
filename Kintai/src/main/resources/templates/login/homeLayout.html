@@ -22,7 +22,7 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container-fluid">
             <div class="navbar-header">
-                <a class="navbar-brand" href="#">勤怠管理Aｐｐ</a>
+                <a class="navbar-brand" href="/home">勤怠管理Aｐｐ</a>
 
                 <!--デバック ID確認-->
                 <a th:inline="text">[[${#httpServletRequest.remoteUser}]](デバック用表示)</a>
@@ -41,10 +41,10 @@
             <div class="col-sm-2 sidebar">
                 <ul class="nav nav-pills nav-stacked">
                     <li role="presentation">
-                        <a th:href="@{'/userList'}">ユーザーリスト</a>
+                        <a th:href="@{'/userList'}">ユーザ一覧</a>
                     </li>
                     <li role="presentation" >
-                    <a th:href="@{attendanceRecord}">勤怠状況</a>
+                    <a th:href="@{attendanceRecord}">勤怠一覧</a>
                         <!-- <a th:href="@{'/workSheet/' + ${userId}}">勤怠状況</a> -->
                     </li>
                    <li role="presentation" sec:authorize="hasRole('ADMIN')">

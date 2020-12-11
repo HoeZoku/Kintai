@@ -52,6 +52,8 @@ public interface UserDao {
   //本日退勤
     public int leave(String userId) throws DataAccessException;
 
+    public int updateStamping(DayRecode dayRecode) throws DataAccessException;
+
 
 
 }

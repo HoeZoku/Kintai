@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -35,15 +34,11 @@ public class SignupController {
 	 * ユーザー登録画面のPOSTメソッド用処理.
 	 */
 	@PostMapping("/signup")
-	public String postSignUp(@ModelAttribute @Validated SignupForm form,
+	public String postSignUp(@ModelAttribute SignupForm form,
 			BindingResult bindingResult,
 			Model model) {
 
-		// 入力チェックに引っかかった場合、ユーザー登録画面に戻る
-		if (bindingResult.hasErrors()) {
-			// GETリクエスト用のメソッドを呼び出して、ユーザー登録画面に戻ります
-			return getSignUp(form, model);
-		}
+
 
 		//でバック用 formの中身をコンソールに出して確認します
 		System.out.println(form);

@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 
 import com.example.demo.login.domain.model.DayRecode;
+import com.example.demo.login.domain.model.DayRecodeForm;
 import com.example.demo.login.domain.model.SignupForm;
 import com.example.demo.login.domain.model.User;
 import com.example.demo.login.domain.service.UserService;
@@ -30,16 +31,14 @@ public class HomeController {
 	@Autowired
 	UserService userService;
 
-	///////////////////////////////////GET////////////////////////////////////////////////////////////////
-
 	/**
-	 * ログイン後、画面表示前に今月分の勤怠データが作られているかチェック
+	 * ログイン後、画面表示前に今月分の勤怠データが作られているかチェック////////////////////////////////////////////////////
 	 */
 	@GetMapping("/home")
 	public String getHome(Model model) {
 		model.addAttribute("contents", "login/home::home_contents");
 
-		//ログインしているユーザのID取得(どっかで共通化したい）
+		//ユーザID取得(どっかで共通化したい）
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		String userId;
 		if (principal instanceof UserDetails) {
@@ -47,38 +46,36 @@ public class HomeController {
 		} else {
 			userId = principal.toString();
 		}
-		//デ
-		System.out.println(userId);
 
 		// ユーザーIDのチェック
 		if (userId != null && userId.length() > 0) {
+
+			//今月分のレコードチェック（とりあえず戻り値Stringだがどうするか・・・
 			String result = userService.checkAndMake(userId);
-			//デ
-			System.out.println(result);
+
+			//本日分レコード取得
+			Date now = new Date(System.currentTimeMillis());
+			DayRecode dayRecode =userService.selectDay(userId,now);
+
+				//デ
+			System.out.println(dayRecode.getWorkDate());
+
+			//画面に渡すためDayRecodeクラスmodelに登録（Formクラスがいるかもしれないがとりあえず作らず）
+			model.addAttribute("dayRecode", dayRecode);
+
 		}
 		return "login/homeLayout";
 	}
 
-	/**
-	 * ユーザー一覧画面
-	 */
+
+	 //ユーザー一覧画面//////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	@GetMapping("/userList")
-	//Modelから値を取得して表示するためカウント結果と複数検索結果をModelクラスに登録（addAttribute）
+
 	public String getUserList(Model model) {
 
-		//コンテンツ部分にユーザー一覧を表示するための文字列を登録
+		//htmlのコンテンツ部分に登録
 		model.addAttribute("contents", "login/userList::userList_contents");
-
-		//ログインしているユーザのID取得(ココじゃなくてもいいような・・・どっかに共通化したい）
-		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		String userId;
-		if (principal instanceof UserDetails) {
-			userId = ((UserDetails)principal).getUsername();
-		} else {
-			userId = principal.toString();
-		}
-		//デ
-		System.out.println(userId);
 
 		//ユーザー一覧の生成
 		List<User> userList = userService.selectMany();
@@ -94,7 +91,7 @@ public class HomeController {
 	}
 
 	/**
-	 * ユーザー詳細画面
+	 * ユーザー詳細画面////////////////////////////////////////////////////////////////////////////////////////////////////
 	 */
 
 	@GetMapping("/userDetail/{id:.+}")
@@ -122,10 +119,48 @@ public class HomeController {
 		return "login/homeLayout";
 	}
 
+	/*
+	 * 勤怠一覧の修正ボタン処理//////////////////////////////////////////////////////////////////////////////////////////////
+	 */
+	@GetMapping("/correct/{recode.workDate}")
+
+	public String getCorrect(@ModelAttribute DayRecodeForm form,
+			Model model, @PathVariable("recode.workDate") Date date) {
+
+		model.addAttribute("contents", "login/correct::correct_contents");
+
+		//ログインしているユーザのID取得(どっかで共通化すべき？）
+				Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				String userId;
+				if (principal instanceof UserDetails) {
+					userId = ((UserDetails)principal).getUsername();
+				} else {
+					userId = principal.toString();
+				}
+
+		// ユーザーIDのチェック
+		if (userId != null && userId.length() > 0) {
+
+			//レコード取得
+			DayRecode dayRecode =userService.selectDay(userId,date);
+
+			// DayRecodeクラスをフォームクラスに変換（バリデーション用？）
+			form.setWorkDate(dayRecode.getWorkDate()); //日付
+			form.setStartTime(dayRecode.getStartTime()); //出勤時間
+			form.setEndTime(dayRecode.getEndTime()); //退勤時間
+			form.setNote(dayRecode.getNote()); //備考
+
+			// Modelに登録
+			model.addAttribute("dayRecodeForm", form);
+		}
+			return "login/homeLayout";
+	}
+
 
 
 	/**
-	 * 今月の勤怠シート画面（＊＊＊作成中＊＊＊）
+	 * 勤怠一覧画面
+
 	 * 今はとりあえず全件取得
 	 * 動的 な URL に 対応 し た メソッド を 作る ため には、@ GetMapping や@ PostMapping の 値 に/{< 変数 名 >} を 付け ます。
 	 * 例えば、 ユーザー ID を 受け取る 場合 は、@ GetMapping(/userDetail/{ id}) と し ます。idがemailの場合は正規表現で{id:.+}
@@ -167,10 +202,9 @@ public class HomeController {
 	}
 
 	/*
-	 * 出勤ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	 *
+	 * 打刻ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////
 	 */
-	@PostMapping(value = "/home", params = "attendance")
+	@PostMapping(value = "/home", params = "stamping")
 	public String postAttendance(Model model) {
 
 		model.addAttribute("contents", "login/home::home_contents");
@@ -191,31 +225,40 @@ public class HomeController {
 			Date now = new Date(System.currentTimeMillis());
 			DayRecode dayRecode =userService.selectDay(userId,now);
 
-			if(dayRecode.getStartTime()==null) {
-				//更新実行
-				boolean result = userService.attendance(userId);
-				//使ってない？
-				if (result == true) {
-					model.addAttribute("result", "更新成功");
-				} else {
-					model.addAttribute("result", "更新失敗");
-				}
-			}else {
-				//デ
-				System.out.println("出勤済み");
-			}
-		}
+			//とりあえず格納用(戻り値Stringにして画面出力してもいいかも)
+			boolean result;
 
+			String str;
+
+			//出勤してなければ出勤
+			if(dayRecode.getStartTime()==null) {
+
+				result = userService.attendance(userId);
+				str="【 出勤 】しました。";
+
+			//出勤してかつ退勤してなければ退勤
+			}else if(dayRecode.getEndTime()==null){
+					result = userService.leave(userId);
+					str="【 退勤 】しました。";
+
+			//出勤も退勤もしていれば修正を促す
+			}else {
+				str = "出退勤済みです。修正は【勤怠一覧】を参照してください";
+			}
+
+			model.addAttribute("str", str);
+		}
 		return "login/homeLayout";
 	}
 
+	/*
+	 * home画面の修正ボタン処理//////////////////////////////////////////////////////////////////////////////////////////////
+	 */
+	@PostMapping(value = "/home", params = "todayCorrect")
 
-	  //退勤ボタン処理/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	public String postTodayCorrect(@ModelAttribute DayRecodeForm form,Model model) {
 
-	@PostMapping(value = "/home", params = "leave")
-	public String postLeave(Model model) {
-
-		model.addAttribute("contents", "login/home::home_contents");
+		model.addAttribute("contents", "login/correct::correct_contents");
 
 		//ログインしているユーザのID取得(どっかで共通化すべき？）
 		Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -233,25 +276,78 @@ public class HomeController {
 			Date now = new Date(System.currentTimeMillis());
 			DayRecode dayRecode =userService.selectDay(userId,now);
 
-			if(dayRecode.getEndTime()==null) {
-				//更新実行
-				boolean result = userService.leave(userId);
-				if (result == true) {
-					model.addAttribute("result", "更新成功");
-				} else {
-					model.addAttribute("result", "更新失敗");
-				}
-			}else {
-			//デ
-			System.out.println("退勤済み");
-			}
+			// DayRecodeクラスをフォームクラスに変換（バリデーション用？）
+			form.setWorkDate(dayRecode.getWorkDate()); //日付
+			form.setStartTime(dayRecode.getStartTime()); //出勤時間
+			form.setEndTime(dayRecode.getEndTime()); //退勤時間
+			form.setNote(dayRecode.getNote()); //備考
+
+			// Modelに登録
+			model.addAttribute("dayRecodeForm", form);
 		}
-		return "login/homeLayout";
+			return "login/homeLayout";
 	}
 
 
+	/**
+	 * 打刻修正用処理//////////////////////////////////////////////////////////////////////////////////////////////////
+	 */
+
+	//バリデーションまだ
+	@PostMapping(value = "/correct", params = "update")
+	public String postStampingUpdate(@ModelAttribute  DayRecodeForm form,
+			Model model) {
+
+
+		model.addAttribute("contents", "login/correct::correct_contents");
+
+			System.out.println("打刻修正開始");
+
+		//ログインしているユーザのID取得(どっかで共通化すべき？）
+				Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+				String userId;
+				if (principal instanceof UserDetails) {
+					userId = ((UserDetails)principal).getUsername();
+				} else {
+					userId = principal.toString();
+				}
+
+		//DayRecodeインスタンスの生成
+		DayRecode dayRecode = new DayRecode();
+
+		//フォームクラスをDayRecodeクラスに変換
+		dayRecode.setUserId(userId);
+		dayRecode.setWorkDate(form.getWorkDate());
+		dayRecode.setStartTime(form.getStartTime());
+		dayRecode.setEndTime(form.getEndTime());
+		dayRecode.setNote(form.getNote());
+
+		//更新実行
+		try {
+
+			//更新実行
+			boolean result = userService.updateStamping(dayRecode);
+
+			if (result == true) {
+				model.addAttribute("result", "更新成功");
+			} else {
+				model.addAttribute("result", "更新失敗");
+			}
+
+		} catch (DataAccessException e) {
+
+			model.addAttribute("result", "更新失敗(トランザクションテスト)");
+
+		}
+
+		//ユーザー一覧画面を表示
+		return getWorkSheet(model);
+	}
+
+
+
 		/**
-		 * ユーザー更新用処理////////////////////////////////////////////////////////////
+		 * ユーザー更新用処理//////////////////////////////////////////////////////////////////////////////////////////////////
 		 */
 
 		@PostMapping(value = "/userDetail", params = "update")
@@ -291,7 +387,7 @@ public class HomeController {
 
 
 		/**
-		 * ユーザー削除用処理
+		 * ユーザー削除用処理/////////////////////////////////////////////////////////////////////////////////////////////////
 		 */
 
 		@PostMapping(value = "/userDetail", params = "delete")
@@ -314,7 +410,7 @@ public class HomeController {
 		}
 
 		/**
-		 * ユーザー一覧のCSV出力用処理
+		 * ユーザー一覧のCSV出力用処理////////////////////////////////////////////////////////////////////////////////
 		 */
 		@GetMapping("/userList/csv")
 		public ResponseEntity<byte[]> getUserListCsv(Model model) {
@@ -341,7 +437,7 @@ public class HomeController {
 			return new ResponseEntity<>(bytes, header, HttpStatus.OK);
 		}
 
-		//ログアウト用メソッド.
+		//ログアウト用メソッド./////////////////////////////////////////////////////////////////////////////////////////
 		@PostMapping("/logout")
 		public String postLogout() {
 
@@ -350,7 +446,7 @@ public class HomeController {
 		}
 
 		/**
-		 * アドミン権限専用画面のGET用メソッド
+		 * アドミン権限専用画面のGET用メソッド////////////////////////////////////////////////////////////////////////
 		 * @param model Modelクラス
 		 * @return 画面のテンプレート名
 		 */

@@ -53,7 +53,7 @@ public class UserDaoJdbcImpl implements UserDao {
 				+ " password,"
 				+ " user_name,"
 				+ " role)"
-				+ " VALUES(?, ?, ?, ?, ?, ?, ?)",
+				+ " VALUES(?, ?, ?, ?)",
 				user.getUserId(),
 				password,
 				user.getUserName(),
@@ -119,6 +119,28 @@ public class UserDaoJdbcImpl implements UserDao {
 
 		return rowNumber;
 	}
+
+	// 勤怠テーブルを１件更新///////////////////////////////////////////////////////////////////////////////////////////
+		@Override
+		public int updateStamping(DayRecode dayRecode) throws DataAccessException {
+
+
+			int rowNumber = jdbc.update("UPDATE work_schedule"
+					+ " SET"
+					+ " start_time = ?,"
+					+ " end_time = ?,"
+					+ " note = ?"
+					+ " WHERE user_id = ?"
+					+ " AND work_date = ?",
+					dayRecode.getStartTime(),
+					dayRecode.getEndTime(),
+					dayRecode.getNote(),
+					dayRecode.getUserId(),
+					dayRecode.getWorkDate());
+
+			return rowNumber;
+		}
+
 
 	// Userテーブルを１件削除./////////////////////////////////////////////////////////////////////////////////////////////////
 	@Override
@@ -188,8 +210,8 @@ public class UserDaoJdbcImpl implements UserDao {
 			//今のところsqlは,で終わってるので;に直す（もっとやり方ある?）
 			StringBuilder sb = new StringBuilder(sql);
 			sb.setLength(sb.length()-1);
-			sb=sb.append(";");
-			sql=sb.toString();
+			sb = sb.append(";");
+			sql =sb.toString();
 
 			//SQL実行
 			jdbc.update(sql);

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+    <meta charset="UTF-8"></meta>
+</head>
+
+<!-- 出退勤修正画面　作成中 -->
+
+<body>
+    <div th:fragment="correct_contents">
+        <div class="row">
+            <div class="col-sm-5">
+                <div class="page-header">
+                    <h1>打刻修正</h1>
+                </div>
+                <form method="post" th:action="@{/correct}" th:object="${dayRecodeForm}">
+                    <table class="table table-bordered table-hover">
+                        <tr>
+                            <!-- 日付（入力不可） -->
+                            <th class="active col-sm-2">日付</th>
+                            <td class="col-sm-3">
+                                <div class="form-group">
+                                    <input type="text" class="form-control"
+                                        th:field="*{workDate}"
+                                        readonly="readonly" />
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <!-- 出勤時間 -->
+                            <th class="active">出勤時間</th>
+                            <td>
+                                <div class="form-group"
+                                    th:classappend="${#fields.hasErrors('startTime')} ? 'has-error'">
+                                    <input type="text" class="form-control"
+                                        placeholder="hh:mm" th:field="*{startTime}" />
+                                    <span class="text-danger"
+                                        th:if="${#fields.hasErrors('startTime')}"
+                                        th:errors="*{startTime}">
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <!-- 退勤時間 -->
+                            <th class="active">退勤時間</th>
+                            <td>
+                                <div class="form-group"
+                                    th:classappend="${#fields.hasErrors('endTime')} ? 'has-error'">
+                                    <input type="text" class="form-control"
+                                        placeholder="hh:mm" th:field="*{endTime}" />
+                                    <span class="endTime"
+                                        th:if="${#fields.hasErrors('endTime')}"
+                                        th:errors="*{endTime}">
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                         <tr>
+                            <!-- 備考 -->
+                            <th class="active">備考</th>
+                            <td>
+                                <div class="form-group"
+                                    th:classappend="${#fields.hasErrors('note')} ? 'has-error'">
+                                    <input type="text" class="form-control"
+                                        th:field="*{note}" />
+                                    <span class="note"
+                                        th:if="${#fields.hasErrors('note')}"
+                                        th:errors="*{note}">
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                    </table>
+                    <!-- 更新ボタン -->
+                    <button class="btn btn-primary btn-lg pull-right"
+                        type="submit"
+                        name="update">
+                        更新
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
